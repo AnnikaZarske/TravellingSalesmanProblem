@@ -64,7 +64,7 @@ public class Edge
     }
 }
 
-public class Graph : MonoBehaviour
+public class Graph
 {
     public int vertexCount
     {
@@ -84,8 +84,8 @@ public class Graph : MonoBehaviour
         _minPos = minPos;
         _maxPos = maxPos;
 
-        this.Vertices = new List<Vertex>();
-        this.Edges = new List<Edge>();
+        Vertices = new List<Vertex>();
+        Edges = new List<Edge>();
         
         CreateGraph();
     }
