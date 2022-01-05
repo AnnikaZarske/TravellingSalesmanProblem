@@ -21,13 +21,15 @@ public class MainProgram : MonoBehaviour
     public GameObject cityDotpf;
     public GameObject dotSpacePanel;
     public TMP_Text cityAmountText;
+    public LineRenderer lineRenderer;
 
     private List<GameObject> cityDots;
     private Graph graph;
     void Start()
     {
+        //lineRenderer = GetComponent<LineRenderer>();
         cityDots = new List<GameObject>();
-        graph = new Graph((int)cityAmount.value, minPos, maxPos);
+        //graph = new Graph((int)cityAmount.value, minPos, maxPos);
     }
 
     private void Update()
@@ -43,11 +45,24 @@ public class MainProgram : MonoBehaviour
         {
             case 0:
                 Debug.Log("BRUTE FORCE");
-                //BruteForce();
+                if ((int)cityAmount.value > 9)
+                {
+                    Debug.LogError("SETTING CITY AMOUNT OVER 9 TAKES A LONG TIME");
+                    cityAmount.value = 9;
+                }
+                else
+                {
+                    BruteForce();
+                }
+                break;
+            case 1:
+                break;
+            case 2:
                 break;
         }
     }
-
+    
+    
     private void GenerateGraph()
     {
         ClearCities();
@@ -59,26 +74,38 @@ public class MainProgram : MonoBehaviour
             GameObject cityDot;
             cityDot = Instantiate(cityDotpf, new Vector3(0, 0, 0), Quaternion.identity);
             cityDot.transform.SetParent(dotSpacePanel.transform);
-            cityDot.transform.localPosition = new Vector3(point.position.x, point.position.y, 0);
+            cityDot.transform.localPosition = new Vector3(point.position.x, point.position.y, -0.01f);
             cityDot.name = ("City: [" + point.index.ToString("00") + "]");
             cityDots.Add(cityDot);
         }
     }
 
+    void Drawlines(Vector3[] vertexPositions)
+    {
+        lineRenderer.positionCount = vertexPositions.Length;
+        lineRenderer.SetPositions(vertexPositions);
+    }
+    
     private void BruteForce()
     {
         BruteForce bf = new BruteForce(graph);
         
         Stopwatch sw = new Stopwatch();
+        Debug.Log("Start Brute Force");
         sw.Start();
-        List<Vertex> cycle = bf.ShortestPath();
+        List<Vertex> path = bf.ShortestPath();
         sw.Stop();
-        
-        foreach(Vertex vertex in cycle)
+        Debug.Log("Stop Brute Force");
+
+        Vector3[] positions = new Vector3[path.Count];
+        for (int i = 0; i < path.Count; i++)
         {
-            Debug.Log("[" + vertex.index.ToString("00") + "] ");
+            positions[i] = new Vector3(path[i].position.x, path[i].position.y, -0.01f);
         }
         
+        Drawlines(positions);
+            
+        //Debug.Log("[" + path[i].index.ToString("00") + "] ");
         Debug.Log("Distance: " + bf.minDistance.ToString("0.00"));
         Debug.Log("Elapsed Time: " + sw.Elapsed);
     }

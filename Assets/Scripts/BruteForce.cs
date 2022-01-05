@@ -43,7 +43,7 @@ public class BruteForce
             _visitedPoints.Push(vertex);            
             _pointStack.Push(vertex);
 
-            foreach (Edge edge in vertex.edges)
+            foreach (Edge edge in vertex.Edges)
             {
                 if (edge.vertexB == _startPoint)
                 {
