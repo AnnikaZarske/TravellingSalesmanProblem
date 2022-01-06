@@ -1495,7 +1495,7 @@ GameObject:
   - component: {fileID: 291680409}
   - component: {fileID: 291680408}
   m_Layer: 5
-  m_Name: StartButton (1)
+  m_Name: StopButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5931,7 +5931,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 544598585}
         m_TargetAssemblyTypeName: MainProgram, Assembly-CSharp
-        m_MethodName: OnStartClick
+        m_MethodName: OnStartOnceClick
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -6170,7 +6170,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Start
+  m_text: Stop
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: a05b50eec871c694aa26df59fe8301d6, type: 2}
   m_sharedMaterial: {fileID: 383947834200288475, guid: a05b50eec871c694aa26df59fe8301d6, type: 2}
@@ -6445,7 +6445,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Start
+  m_text: Start Once
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: a05b50eec871c694aa26df59fe8301d6, type: 2}
   m_sharedMaterial: {fileID: 383947834200288475, guid: a05b50eec871c694aa26df59fe8301d6, type: 2}
@@ -6472,7 +6472,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 30
+  m_fontSize: 21.35
   m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -6508,7 +6508,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 1
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 2.6798246, y: 0, z: 1.9141637, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0

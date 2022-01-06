@@ -64,12 +64,10 @@ public class MainProgram : MonoBehaviour
         switch (algorithmChoice.value)
         {
             case 0:
-                if (cityAmountInt > 9)
-                {
+                if (cityAmountInt > 9) {
                     bruteForceWarning.GetComponent<TMP_Text>().enabled = true;
                 }
-                else
-                {
+                else {
                     bruteForceWarning.GetComponent<TMP_Text>().enabled = false;
                 }
                 break;
@@ -107,7 +105,7 @@ public class MainProgram : MonoBehaviour
         iterationsButtonNumbers = true;
     }
 
-    public void OnStartClick()
+    public void OnStartOnceClick()
     {
         cityAmountInt = int.Parse(cityAmount.text);
         GenerateGraph();
@@ -116,7 +114,26 @@ public class MainProgram : MonoBehaviour
         {
             case 0:
                 Debug.Log("BRUTE FORCE");
-                StartCoroutine(nameof(BruteForce));
+                BruteForce();
+                break;
+            case 1:
+                break;
+            case 2:
+                break;
+        }
+    }
+    
+    public void OnStartIterationsClick()
+    {
+        cityAmountInt = int.Parse(cityAmount.text);
+        GenerateGraph();
+        
+        switch (algorithmChoice.value)
+        {
+            case 0:
+                Debug.Log("BRUTE FORCE");
+                //Loop for iterations
+                BruteForce();
                 break;
             case 1:
                 break;
@@ -130,8 +147,7 @@ public class MainProgram : MonoBehaviour
         switch (algorithmChoice.value)
         {
             case 0:
-                Debug.Log("BRUTE FORCE");
-                StopCoroutine(nameof(BruteForce));
+                Debug.Log("STOP BRUTE FORCE");
                 break;
             case 1:
                 break;
@@ -165,18 +181,16 @@ public class MainProgram : MonoBehaviour
         lineRenderer.SetPositions(vertexPositions);
     }
     
-    private IEnumerator BruteForce()
+    private void BruteForce()
     {
         BruteForce bf = new BruteForce(graph);
         
-        
         Debug.Log("Start Brute Force");
+        sw.Reset();
         sw.Start();
 
-        bf.CalcShortestPath();
+        List<Vertex> path = bf.ShortestPath();
 
-        List<Vertex> path = bf.ShortestPath;
-        
         sw.Stop();
         Debug.Log("Stop Brute Force");
         
@@ -190,12 +204,12 @@ public class MainProgram : MonoBehaviour
 
         distanceText.text = bf.minDistance.ToString("0000.00");
         Drawlines(positions);
-
-        yield return null;
-
+        
+        addRecord("Brute Force", iterationsAmountInt, cityAmountInt, sw.Elapsed.TotalSeconds , bf.minDistance, "BruteForceData.csv");
+        
         //Debug.Log("[" + path[i].index.ToString("00") + "] ");
-        Debug.Log("Distance: " + bf.minDistance.ToString("0.00"));
-        Debug.Log("Elapsed Time: " + sw.Elapsed);
+        //Debug.Log("Distance: " + bf.minDistance.ToString("0.00"));
+        //Debug.Log("Elapsed Time: " + sw.Elapsed);
     }
 
     private void ClearCities()
@@ -217,4 +231,20 @@ public class MainProgram : MonoBehaviour
             Debug.Log("x:" + point.position.x.ToString() + " | y:" + point.position.y.ToString());
         }
     }
+    
+    public static void addRecord(string algoType, int iterations, int cityAmount, double time, double distance, string filepath)
+    {
+        try
+        {
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(@filepath, true))
+            {
+                file.WriteLine(algoType + "," + iterations + "," + cityAmount + "," + time + "," + distance);
+            }
+        }
+        catch(Exception ex)
+        {
+            throw new AggregateException("This program messed up: ", ex);
+        }
+    }
+    
 }
