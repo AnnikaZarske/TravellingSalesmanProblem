@@ -8,23 +8,29 @@ using UnityEngine.UI;
 using UnityEngine.UIElements;
 using Debug = UnityEngine.Debug;
 using Slider = UnityEngine.UI.Slider;
+using Toggle = UnityEngine.UI.Toggle;
 
 public class MainProgram : MonoBehaviour
 {
+    [Header("Display settings")]
     public Vector2 minPos;
     public Vector2 maxPos;
 
+    [Header("Connected text fields")]
     public TMP_Text bruteForceWarning;
     public TMP_Text timeText;
     public TMP_Text distanceText;
+    
+    [Header("Connected Interactable")]
     public TMP_InputField cityAmount;
     private int cityAmountInt = 3;
-    
     public TMP_InputField iterationsAmount;
     private int iterationsAmountInt = 1;
-    
     public TMP_Dropdown algorithmChoice;
+    public Toggle graphToggle;
+    public Toggle fileOverrideToggle;
     
+    [Header("Connected items")]
     public GameObject cityDotpf;
     public GameObject dotSpacePanel;
     public LineRenderer lineRenderer;
@@ -108,7 +114,10 @@ public class MainProgram : MonoBehaviour
     public void OnStartOnceClick()
     {
         cityAmountInt = int.Parse(cityAmount.text);
-        GenerateGraph();
+        if (graphToggle.isOn)
+        {
+            GenerateGraph();
+        }
         
         switch (algorithmChoice.value)
         {
@@ -205,7 +214,7 @@ public class MainProgram : MonoBehaviour
         distanceText.text = bf.minDistance.ToString("0000.00");
         Drawlines(positions);
         
-        addRecord("Brute Force", iterationsAmountInt, cityAmountInt, sw.Elapsed.TotalSeconds , bf.minDistance, "BruteForceData.csv");
+        AddRecord("Brute Force", iterationsAmountInt, cityAmountInt, sw.Elapsed.TotalSeconds , bf.minDistance, "BruteForceData.csv");
         
         //Debug.Log("[" + path[i].index.ToString("00") + "] ");
         //Debug.Log("Distance: " + bf.minDistance.ToString("0.00"));
@@ -232,19 +241,36 @@ public class MainProgram : MonoBehaviour
         }
     }
     
-    public static void addRecord(string algoType, int iterations, int cityAmount, double time, double distance, string filepath)
+    private void AddRecord(string algoType, int iterations, int cityAmount, double time, double distance, string filepath)
     {
-        try
+        if (fileOverrideToggle.isOn)
         {
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(@filepath, true))
+            fileOverrideToggle.isOn = false;
+            try
             {
-                file.WriteLine(algoType + "," + iterations + "," + cityAmount + "," + time + "," + distance);
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(@filepath, false))
+                {
+                    file.WriteLine(algoType + "," + iterations + "," + cityAmount + "," + time + "," + distance);
+                }
+            }
+            catch(Exception ex)
+            {
+                throw new AggregateException("This program messed up: ", ex);
             }
         }
-        catch(Exception ex)
+        else
         {
-            throw new AggregateException("This program messed up: ", ex);
+            try
+            {
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(@filepath, true))
+                {
+                    file.WriteLine(algoType + "," + iterations + "," + cityAmount + "," + time + "," + distance);
+                }
+            }
+            catch(Exception ex)
+            {
+                throw new AggregateException("This program messed up: ", ex);
+            }
         }
     }
-    
 }
