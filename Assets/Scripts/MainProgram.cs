@@ -50,12 +50,6 @@ public class MainProgram : MonoBehaviour
 
     private void Update()
     {
-        
-        if (cityAmount.text == "1" || cityAmount.text == "2")
-        {
-            cityAmount.text = "3";
-            Debug.LogWarning("DO NOT SET NUMBER OF CITIES UNDER 3");
-        }
         if (cityButtonNumbers)
         {
             cityAmount.text = cityAmountInt.ToString();
@@ -113,22 +107,34 @@ public class MainProgram : MonoBehaviour
 
     public void OnStartOnceClick()
     {
+        bool error = false;
         cityAmountInt = int.Parse(cityAmount.text);
-        if (graphToggle.isOn)
+        if (cityAmountInt < 3)
         {
-            GenerateGraph();
+            cityAmount.text = "3";
+            error = true;
+            Debug.LogError("DO NOT SET NUMBER OF CITIES UNDER 3");
         }
-        
-        switch (algorithmChoice.value)
+        if (!error)
         {
-            case 0:
-                Debug.Log("BRUTE FORCE");
-                BruteForce();
-                break;
-            case 1:
-                break;
-            case 2:
-                break;
+            if (graphToggle.isOn)
+            {
+                GenerateGraph();
+            }
+        
+            switch (algorithmChoice.value)
+            {
+                case 0:
+                    Debug.Log("BRUTE FORCE");
+                    BruteForce();
+                    break;
+                case 1:
+                    Debug.Log("NEAREST NEIGHBOUR");
+                    NearestNeighbour();
+                    break;
+                case 2:
+                    break;
+            }
         }
     }
     
@@ -145,6 +151,8 @@ public class MainProgram : MonoBehaviour
                 BruteForce();
                 break;
             case 1:
+                Debug.Log("NEAREST NEIGHBOUR");
+                NearestNeighbour();
                 break;
             case 2:
                 break;
@@ -184,7 +192,7 @@ public class MainProgram : MonoBehaviour
         }
     }
 
-    void Drawlines(Vector3[] vertexPositions)
+    void DrawLines(Vector3[] vertexPositions)
     {
         lineRenderer.positionCount = vertexPositions.Length;
         lineRenderer.SetPositions(vertexPositions);
@@ -212,15 +220,40 @@ public class MainProgram : MonoBehaviour
         }
 
         distanceText.text = bf.minDistance.ToString("0000.00");
-        Drawlines(positions);
+        DrawLines(positions);
         
-        AddRecord("Brute Force", iterationsAmountInt, cityAmountInt, sw.Elapsed.TotalSeconds , bf.minDistance, "BruteForceData.csv");
+        AddRecord("Brute Force", iterationsAmountInt, cityAmountInt, sw.Elapsed.TotalSeconds , bf.minDistance, "TSPData.csv");
         
         //Debug.Log("[" + path[i].index.ToString("00") + "] ");
         //Debug.Log("Distance: " + bf.minDistance.ToString("0.00"));
         //Debug.Log("Elapsed Time: " + sw.Elapsed);
     }
 
+    private void NearestNeighbour()
+    {
+        NearestNeighbour nn = new NearestNeighbour(graph);
+        
+        sw.Reset();
+        sw.Start();
+
+        nn.CalcShortestPath();
+        List<Vertex> path = nn.ShortestPath;
+        sw.Stop();
+            
+        timeText.text = sw.Elapsed.ToString();
+
+        Vector3[] positions = new Vector3[path.Count];
+        for (int i = 0; i < path.Count; i++)
+        {
+            positions[i] = new Vector3(path[i].position.x, path[i].position.y, -0.01f);
+        }
+
+        distanceText.text = nn.minDistance.ToString("0000.00");
+        DrawLines(positions);
+        
+        AddRecord("Nearest Neighbour", iterationsAmountInt, cityAmountInt, sw.Elapsed.TotalSeconds , nn.minDistance, "TSPData.csv");
+    }
+    
     private void ClearCities()
     {
         foreach (GameObject citydot in cityDots) {
