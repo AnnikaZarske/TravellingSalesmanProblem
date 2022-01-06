@@ -13,47 +13,125 @@ public class MainProgram : MonoBehaviour
 {
     public Vector2 minPos;
     public Vector2 maxPos;
-    //public int cityAmount;
+
+    public TMP_Text bruteForceWarning;
+    public TMP_Text timeText;
+    public TMP_Text distanceText;
+    public TMP_InputField cityAmount;
+    private int cityAmountInt = 3;
     
-    public Slider cityAmount;
+    public TMP_InputField iterationsAmount;
+    private int iterationsAmountInt = 1;
+    
     public TMP_Dropdown algorithmChoice;
     
     public GameObject cityDotpf;
     public GameObject dotSpacePanel;
-    public TMP_Text cityAmountText;
     public LineRenderer lineRenderer;
 
     private List<GameObject> cityDots;
     private Graph graph;
+    private bool cityButtonNumbers;
+    private bool iterationsButtonNumbers;
+    private Stopwatch sw = new Stopwatch();
     void Start()
     {
-        //lineRenderer = GetComponent<LineRenderer>();
+        cityAmount.text = "3";
+        iterationsAmount.text = "1";
+        
         cityDots = new List<GameObject>();
-        //graph = new Graph((int)cityAmount.value, minPos, maxPos);
     }
 
     private void Update()
     {
-        cityAmountText.text = cityAmount.value.ToString();
+        
+        if (cityAmount.text == "1" || cityAmount.text == "2")
+        {
+            cityAmount.text = "3";
+            Debug.LogWarning("DO NOT SET NUMBER OF CITIES UNDER 3");
+        }
+        if (cityButtonNumbers)
+        {
+            cityAmount.text = cityAmountInt.ToString();
+            cityButtonNumbers = false;
+        }
+        if (iterationsButtonNumbers)
+        {
+            iterationsAmount.text = iterationsAmountInt.ToString();
+            iterationsButtonNumbers = false;
+        }
+        
+        switch (algorithmChoice.value)
+        {
+            case 0:
+                if (cityAmountInt > 9)
+                {
+                    bruteForceWarning.GetComponent<TMP_Text>().enabled = true;
+                }
+                else
+                {
+                    bruteForceWarning.GetComponent<TMP_Text>().enabled = false;
+                }
+                break;
+            case 1:
+                bruteForceWarning.GetComponent<TMP_Text>().enabled = false;
+                break;
+            case 2:
+                bruteForceWarning.GetComponent<TMP_Text>().enabled = false;
+                break;
+        }
+    }
+    
+    public void onCityPlusButton()
+    {
+        //cityAmountInt = int.Parse(cityAmount.text);
+        cityAmountInt++;
+        cityButtonNumbers = true;
+    }
+    public void onCityMinusButton()
+    {
+        //cityAmountInt = int.Parse(cityAmount.text);
+        cityAmountInt--;
+        cityButtonNumbers = true;
+    }
+    public void onIterationsPlusButton()
+    {
+        //cityAmountInt = int.Parse(cityAmount.text);
+        iterationsAmountInt++;
+        iterationsButtonNumbers = true;
+    }
+    public void oniterationsMinusButton()
+    {
+        //cityAmountInt = int.Parse(cityAmount.text);
+        iterationsAmountInt--;
+        iterationsButtonNumbers = true;
     }
 
     public void OnStartClick()
     {
+        cityAmountInt = int.Parse(cityAmount.text);
         GenerateGraph();
         
         switch (algorithmChoice.value)
         {
             case 0:
                 Debug.Log("BRUTE FORCE");
-                if ((int)cityAmount.value > 9)
-                {
-                    Debug.LogError("SETTING CITY AMOUNT OVER 9 TAKES A LONG TIME");
-                    cityAmount.value = 9;
-                }
-                else
-                {
-                    BruteForce();
-                }
+                StartCoroutine(nameof(BruteForce));
+                break;
+            case 1:
+                break;
+            case 2:
+                break;
+        }
+    }
+
+    public void OnStopClick()
+    {
+        switch (algorithmChoice.value)
+        {
+            case 0:
+                Debug.Log("BRUTE FORCE");
+                StopCoroutine(nameof(BruteForce));
                 break;
             case 1:
                 break;
@@ -67,7 +145,8 @@ public class MainProgram : MonoBehaviour
     {
         ClearCities();
 
-        graph = new Graph((int)cityAmount.value, minPos, maxPos);
+        graph = new Graph(cityAmountInt, minPos, maxPos);
+        //Debug.Log("City Amount: " + cityAmountInt);
         //GraphInDebug();
         
         foreach (var point in graph.Vertices) {
@@ -86,25 +165,34 @@ public class MainProgram : MonoBehaviour
         lineRenderer.SetPositions(vertexPositions);
     }
     
-    private void BruteForce()
+    private IEnumerator BruteForce()
     {
         BruteForce bf = new BruteForce(graph);
         
-        Stopwatch sw = new Stopwatch();
+        
         Debug.Log("Start Brute Force");
         sw.Start();
-        List<Vertex> path = bf.ShortestPath();
+
+        bf.CalcShortestPath();
+
+        List<Vertex> path = bf.ShortestPath;
+        
         sw.Stop();
         Debug.Log("Stop Brute Force");
+        
+        timeText.text = sw.Elapsed.ToString();
 
         Vector3[] positions = new Vector3[path.Count];
         for (int i = 0; i < path.Count; i++)
         {
             positions[i] = new Vector3(path[i].position.x, path[i].position.y, -0.01f);
         }
-        
+
+        distanceText.text = bf.minDistance.ToString("0000.00");
         Drawlines(positions);
-            
+
+        yield return null;
+
         //Debug.Log("[" + path[i].index.ToString("00") + "] ");
         Debug.Log("Distance: " + bf.minDistance.ToString("0.00"));
         Debug.Log("Elapsed Time: " + sw.Elapsed);

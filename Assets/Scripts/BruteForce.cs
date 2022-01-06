@@ -10,6 +10,10 @@ public class BruteForce
         public double minDistance {
             get { return _minDistance; }
         }
+        
+        public List<Vertex> ShortestPath {
+            get { return _shortestPath; }
+        }
 
         protected double _minDistance;
 
@@ -27,19 +31,19 @@ public class BruteForce
             _minDistance = Double.MaxValue;
         }
 
-        public List<Vertex> ShortestPath()
+        public void CalcShortestPath()
         {
             _startPoint = graph.Vertices[0];
             SearchShortestPath(_startPoint);
-            return _shortestPath;
         }
 
         int counter = 0;
         double distance = 0;
 
-        void SearchShortestPath(Vertex vertex)
+        private void SearchShortestPath(Vertex vertex)
         {
-            counter++;         
+            Debug.Log("counter: " + counter);
+            counter++;
             _visitedPoints.Push(vertex);            
             _pointStack.Push(vertex);
 
