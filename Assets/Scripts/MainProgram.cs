@@ -15,6 +15,18 @@ public class MainProgram : MonoBehaviour
     [Header("Display settings")]
     public Vector2 minPos;
     public Vector2 maxPos;
+    public float waitTime = 0.2f;
+
+    [Header("Output settings")] 
+    [Tooltip("File name must end in .csv")]
+    public string fileToOutputTo = "TSPData.csv";
+
+    [Header("Ant Colony Settings")] 
+    public int antCount = 100;
+    public int antIterations = 100;
+    public double ro = 0.5f;
+    public int alpha = 1;
+    public int beta = 2;
 
     [Header("Connected text fields")]
     public TMP_Text bruteForceWarning;
@@ -29,6 +41,7 @@ public class MainProgram : MonoBehaviour
     public TMP_Dropdown algorithmChoice;
     public Toggle graphToggle;
     public Toggle fileOverrideToggle;
+    public Toggle displayWait;
     
     [Header("Connected items")]
     public GameObject cityDotpf;
@@ -39,6 +52,7 @@ public class MainProgram : MonoBehaviour
     private Graph graph;
     private bool cityButtonNumbers;
     private bool iterationsButtonNumbers;
+    private bool runningiterations = false;
     private Stopwatch sw = new Stopwatch();
     void Start()
     {
@@ -79,6 +93,16 @@ public class MainProgram : MonoBehaviour
                 break;
         }
     }
+
+    public void onCityEdit()
+    {
+        cityAmountInt = int.Parse(cityAmount.text); 
+    }
+
+    public void onIterationsEdit()
+    {
+        iterationsAmountInt = int.Parse(iterationsAmount.text);
+    }
     
     public void onCityPlusButton()
     {
@@ -108,7 +132,7 @@ public class MainProgram : MonoBehaviour
     public void OnStartOnceClick()
     {
         bool error = false;
-        cityAmountInt = int.Parse(cityAmount.text);
+        
         if (cityAmountInt < 3)
         {
             cityAmount.text = "3";
@@ -133,6 +157,8 @@ public class MainProgram : MonoBehaviour
                     NearestNeighbour();
                     break;
                 case 2:
+                    Debug.Log("ANT COLONY");
+                    AntColony();
                     break;
             }
         }
@@ -140,21 +166,20 @@ public class MainProgram : MonoBehaviour
     
     public void OnStartIterationsClick()
     {
-        cityAmountInt = int.Parse(cityAmount.text);
-        GenerateGraph();
-        
         switch (algorithmChoice.value)
         {
             case 0:
                 Debug.Log("BRUTE FORCE");
-                //Loop for iterations
-                BruteForce();
+                StartCoroutine(CallBruteForceIterations());
                 break;
             case 1:
                 Debug.Log("NEAREST NEIGHBOUR");
-                NearestNeighbour();
+                runningiterations = true;
+                StartCoroutine(CallNearestNeighbourIterations());
                 break;
             case 2:
+                Debug.Log("ANT COLONY");
+                StartCoroutine(CallAntColonyIterations());
                 break;
         }
     }
@@ -167,6 +192,9 @@ public class MainProgram : MonoBehaviour
                 Debug.Log("STOP BRUTE FORCE");
                 break;
             case 1:
+                Debug.Log("STOP NEAREST NEIGHBOUR");
+                runningiterations = false;
+                StopCoroutine(NearestNeighbourIterations());
                 break;
             case 2:
                 break;
@@ -222,11 +250,56 @@ public class MainProgram : MonoBehaviour
         distanceText.text = bf.minDistance.ToString("0000.00");
         DrawLines(positions);
         
-        AddRecord("Brute Force", iterationsAmountInt, cityAmountInt, sw.Elapsed.TotalSeconds , bf.minDistance, "TSPData.csv");
-        
+        AddRecord("Brute Force", iterationsAmountInt, cityAmountInt, sw.Elapsed.TotalSeconds , bf.minDistance, fileToOutputTo);
+
         //Debug.Log("[" + path[i].index.ToString("00") + "] ");
         //Debug.Log("Distance: " + bf.minDistance.ToString("0.00"));
         //Debug.Log("Elapsed Time: " + sw.Elapsed);
+    }
+
+    private IEnumerator CallBruteForceIterations()
+    {
+        for (int i = 0; i < iterationsAmountInt; i++)
+        {
+            GenerateGraph();
+            yield return StartCoroutine(NearestNeighbourIterations());
+        }
+    }
+
+    private IEnumerator BruteForceIterations()
+    {
+        BruteForce bf = new BruteForce(graph);
+        
+        Debug.Log("Start Brute Force");
+        sw.Reset();
+        sw.Start();
+
+        List<Vertex> path = bf.ShortestPath();
+
+        sw.Stop();
+        Debug.Log("Stop Brute Force");
+        
+        timeText.text = sw.Elapsed.ToString();
+
+        Vector3[] positions = new Vector3[path.Count];
+        for (int i = 0; i < path.Count; i++)
+        {
+            positions[i] = new Vector3(path[i].position.x, path[i].position.y, -0.01f);
+        }
+
+        distanceText.text = bf.minDistance.ToString("0000.00");
+        DrawLines(positions);
+        
+        AddRecord("Brute Force", iterationsAmountInt, cityAmountInt, sw.Elapsed.TotalSeconds , bf.minDistance, fileToOutputTo);
+
+        if (displayWait.isOn)
+        {
+            yield return new WaitForSeconds(waitTime);
+        }
+        else
+        {
+            yield return null;
+        }
     }
 
     private void NearestNeighbour()
@@ -251,8 +324,117 @@ public class MainProgram : MonoBehaviour
         distanceText.text = nn.minDistance.ToString("0000.00");
         DrawLines(positions);
         
-        AddRecord("Nearest Neighbour", iterationsAmountInt, cityAmountInt, sw.Elapsed.TotalSeconds , nn.minDistance, "TSPData.csv");
+        AddRecord("Nearest Neighbour", iterationsAmountInt, cityAmountInt, sw.Elapsed.TotalSeconds , nn.minDistance, fileToOutputTo);
     }
+
+    private IEnumerator CallNearestNeighbourIterations()
+    {
+        for (int i = 0; i < iterationsAmountInt; i++)
+        {
+            GenerateGraph();
+            yield return StartCoroutine(NearestNeighbourIterations());
+        }
+    }
+    
+    private IEnumerator NearestNeighbourIterations()
+    {
+        NearestNeighbour nn = new NearestNeighbour(graph);
+        
+        sw.Reset();
+        sw.Start();
+
+        nn.CalcShortestPath();
+        List<Vertex> path = nn.ShortestPath;
+        sw.Stop();
+            
+        timeText.text = sw.Elapsed.ToString();
+
+        Vector3[] positions = new Vector3[path.Count];
+        for (int i = 0; i < path.Count; i++)
+        {
+            positions[i] = new Vector3(path[i].position.x, path[i].position.y, -0.01f);
+        }
+
+        distanceText.text = nn.minDistance.ToString("0000.00");
+        DrawLines(positions);
+        
+        AddRecord("Nearest Neighbour", iterationsAmountInt, cityAmountInt, sw.Elapsed.TotalSeconds , nn.minDistance, fileToOutputTo);
+        if (displayWait.isOn)
+        {
+            yield return new WaitForSeconds(waitTime);
+        }
+        else
+        {
+            yield return null;
+        }
+    }
+    
+    private void AntColony()
+    {
+        AntColony antColony = new AntColony(graph, ro, alpha, beta);
+        
+        sw.Reset();
+        sw.Start();
+
+        antColony.CalcShortestPath(antIterations, antCount);
+        List<Vertex> path = antColony.ShortestPath;
+        sw.Stop();
+        
+        timeText.text = sw.Elapsed.ToString();
+
+        Vector3[] positions = new Vector3[path.Count];
+        for (int i = 0; i < path.Count; i++)
+        {
+            positions[i] = new Vector3(path[i].position.x, path[i].position.y, -0.01f);
+        }
+
+        distanceText.text = antColony.minDistance.ToString("0000.00");
+        DrawLines(positions);
+        
+        AddRecord("Ant Colony", iterationsAmountInt, cityAmountInt, sw.Elapsed.TotalSeconds , antColony.minDistance, fileToOutputTo);
+    }
+    
+    private IEnumerator CallAntColonyIterations()
+        {
+            for (int i = 0; i < iterationsAmountInt; i++)
+            {
+                GenerateGraph();
+                yield return StartCoroutine(AntColonyIterations());
+            }
+        }
+    
+    private IEnumerator AntColonyIterations()
+        {
+            AntColony antColony = new AntColony(graph, ro, alpha, beta);
+            
+            sw.Reset();
+            sw.Start();
+    
+            antColony.CalcShortestPath(antIterations, antCount);
+            List<Vertex> path = antColony.ShortestPath;
+            sw.Stop();
+            
+            timeText.text = sw.Elapsed.ToString();
+    
+            Vector3[] positions = new Vector3[path.Count];
+            for (int i = 0; i < path.Count; i++)
+            {
+                positions[i] = new Vector3(path[i].position.x, path[i].position.y, -0.01f);
+            }
+    
+            distanceText.text = antColony.minDistance.ToString("0000.00");
+            DrawLines(positions);
+            
+            AddRecord("Ant Colony", iterationsAmountInt, cityAmountInt, sw.Elapsed.TotalSeconds , antColony.minDistance, fileToOutputTo);
+            if (displayWait.isOn)
+            {
+                yield return new WaitForSeconds(waitTime);
+            }
+            else
+            {
+                yield return null;
+            }
+        }
     
     private void ClearCities()
     {

@@ -44,7 +44,7 @@ public class Vertex
 public class Edge
 {
     public double distance { get; set; }
-    //public double pheromoneValue { get; set; }
+    public double pheromone { get; set; }
     public Vertex vertexA { get; set; }
     public Vertex vertexB { get; set; }
 
@@ -52,6 +52,7 @@ public class Edge
     {
         this.vertexA = vertexA;
         this.vertexB = vertexB;
+        this.pheromone = 0.001;
         CalculateDistance();
     }
 
