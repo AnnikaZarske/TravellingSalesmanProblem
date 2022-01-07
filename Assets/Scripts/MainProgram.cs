@@ -50,10 +50,9 @@ public class MainProgram : MonoBehaviour
 
     private List<GameObject> cityDots;
     private Graph graph;
-    private bool cityButtonNumbers;
-    private bool iterationsButtonNumbers;
-    private bool runningiterations = false;
+    private bool cityButtonNumbers, iterationsButtonNumbers, runningiterations = false;
     private Stopwatch sw = new Stopwatch();
+    private double currentExecutionTime, currentShortestPath, avarageExecutionTime, avarageShortestPath;
     void Start()
     {
         cityAmount.text = "3";
@@ -259,38 +258,38 @@ public class MainProgram : MonoBehaviour
 
     private IEnumerator CallBruteForceIterations()
     {
+        ResetAverage();
         for (int i = 0; i < iterationsAmountInt; i++)
         {
             GenerateGraph();
-            yield return StartCoroutine(NearestNeighbourIterations());
+            currentShortestPath = 0;
+            currentExecutionTime = 0;
+            yield return StartCoroutine(BruteForceIterations());
+            CalcAverage(i);
         }
+        AddRecord("Brute Force", iterationsAmountInt, cityAmountInt, avarageExecutionTime, avarageShortestPath, fileToOutputTo);
     }
 
     private IEnumerator BruteForceIterations()
     {
         BruteForce bf = new BruteForce(graph);
         
-        Debug.Log("Start Brute Force");
         sw.Reset();
         sw.Start();
 
         List<Vertex> path = bf.ShortestPath();
 
         sw.Stop();
-        Debug.Log("Stop Brute Force");
         
-        timeText.text = sw.Elapsed.ToString();
+        currentExecutionTime = sw.Elapsed.TotalSeconds;
+        currentShortestPath = bf.minDistance;
 
         Vector3[] positions = new Vector3[path.Count];
         for (int i = 0; i < path.Count; i++)
         {
             positions[i] = new Vector3(path[i].position.x, path[i].position.y, -0.01f);
         }
-
-        distanceText.text = bf.minDistance.ToString("0000.00");
         DrawLines(positions);
-        
-        AddRecord("Brute Force", iterationsAmountInt, cityAmountInt, sw.Elapsed.TotalSeconds , bf.minDistance, fileToOutputTo);
 
         if (displayWait.isOn)
         {
@@ -329,13 +328,18 @@ public class MainProgram : MonoBehaviour
 
     private IEnumerator CallNearestNeighbourIterations()
     {
+        ResetAverage();
         for (int i = 0; i < iterationsAmountInt; i++)
         {
             GenerateGraph();
+            currentShortestPath = 0;
+            currentExecutionTime = 0;
             yield return StartCoroutine(NearestNeighbourIterations());
+            CalcAverage(i);
         }
+        AddRecord("Nearest Neighbour", iterationsAmountInt, cityAmountInt, avarageExecutionTime, avarageShortestPath, fileToOutputTo);
     }
-    
+
     private IEnumerator NearestNeighbourIterations()
     {
         NearestNeighbour nn = new NearestNeighbour(graph);
@@ -346,25 +350,20 @@ public class MainProgram : MonoBehaviour
         nn.CalcShortestPath();
         List<Vertex> path = nn.ShortestPath;
         sw.Stop();
-            
-        timeText.text = sw.Elapsed.ToString();
+
+        currentExecutionTime = sw.Elapsed.TotalSeconds;
+        currentShortestPath = nn.minDistance;
 
         Vector3[] positions = new Vector3[path.Count];
         for (int i = 0; i < path.Count; i++)
         {
             positions[i] = new Vector3(path[i].position.x, path[i].position.y, -0.01f);
         }
-
-        distanceText.text = nn.minDistance.ToString("0000.00");
         DrawLines(positions);
         
-        AddRecord("Nearest Neighbour", iterationsAmountInt, cityAmountInt, sw.Elapsed.TotalSeconds , nn.minDistance, fileToOutputTo);
-        if (displayWait.isOn)
-        {
+        if (displayWait.isOn) {
             yield return new WaitForSeconds(waitTime);
-        }
-        else
-        {
+        } else {
             yield return null;
         }
     }
@@ -395,47 +394,69 @@ public class MainProgram : MonoBehaviour
     }
     
     private IEnumerator CallAntColonyIterations()
+    {
+        ResetAverage();
+        for (int i = 0; i < iterationsAmountInt; i++)
         {
-            for (int i = 0; i < iterationsAmountInt; i++)
-            {
-                GenerateGraph();
-                yield return StartCoroutine(AntColonyIterations());
-            }
+            GenerateGraph();
+            currentShortestPath = 0;
+            currentExecutionTime = 0;
+            yield return StartCoroutine(AntColonyIterations());
+            CalcAverage(i);
         }
+        AddRecord("Ant Colony", iterationsAmountInt, cityAmountInt, avarageExecutionTime, avarageShortestPath, fileToOutputTo);
+    }
     
     private IEnumerator AntColonyIterations()
+    {
+        AntColony antColony = new AntColony(graph, ro, alpha, beta);
+        
+        sw.Reset();
+        sw.Start();
+
+        antColony.CalcShortestPath(antIterations, antCount);
+        List<Vertex> path = antColony.ShortestPath;
+        sw.Stop();
+        
+        currentExecutionTime = sw.Elapsed.TotalSeconds;
+        currentShortestPath = antColony.minDistance;
+
+        Vector3[] positions = new Vector3[path.Count];
+        for (int i = 0; i < path.Count; i++)
         {
-            AntColony antColony = new AntColony(graph, ro, alpha, beta);
-            
-            sw.Reset();
-            sw.Start();
-    
-            antColony.CalcShortestPath(antIterations, antCount);
-            List<Vertex> path = antColony.ShortestPath;
-            sw.Stop();
-            
-            timeText.text = sw.Elapsed.ToString();
-    
-            Vector3[] positions = new Vector3[path.Count];
-            for (int i = 0; i < path.Count; i++)
-            {
-                positions[i] = new Vector3(path[i].position.x, path[i].position.y, -0.01f);
-            }
-    
-            distanceText.text = antColony.minDistance.ToString("0000.00");
-            DrawLines(positions);
-            
-            AddRecord("Ant Colony", iterationsAmountInt, cityAmountInt, sw.Elapsed.TotalSeconds , antColony.minDistance, fileToOutputTo);
-            if (displayWait.isOn)
-            {
-                yield return new WaitForSeconds(waitTime);
-            }
-            else
-            {
-                yield return null;
-            }
+            positions[i] = new Vector3(path[i].position.x, path[i].position.y, -0.01f);
         }
-    
+        DrawLines(positions);
+        
+        if (displayWait.isOn)
+        {
+            yield return new WaitForSeconds(waitTime);
+        }
+        else
+        {
+            yield return null;
+        }
+    }
+
+    private void CalcAverage(int i)
+    {
+        if (i == 0) {
+            avarageExecutionTime = currentExecutionTime;
+            avarageShortestPath = currentShortestPath;
+        } else {
+            avarageExecutionTime = avarageExecutionTime + (currentExecutionTime - avarageExecutionTime) / (i + 1);
+            avarageShortestPath = avarageShortestPath + (currentShortestPath - avarageShortestPath) / (i + 1);
+        }
+        timeText.text = avarageExecutionTime.ToString("0.00000000");
+        distanceText.text = avarageShortestPath.ToString("0000.00");
+    }
+
+    private void ResetAverage()
+    {
+        avarageExecutionTime = 0;
+        avarageShortestPath = 0;
+    }
+
     private void ClearCities()
     {
         foreach (GameObject citydot in cityDots) {
