@@ -17,10 +17,6 @@ public class MainProgram : MonoBehaviour
     public Vector2 maxPos;
     public float waitTime = 0.2f;
 
-    [Header("Output settings")] 
-    [Tooltip("File name must end in .csv")]
-    public string fileToOutputTo = "TSPData.csv";
-
     [Header("Ant Colony Settings")] 
     public int antCount = 100;
     public int antIterations = 100;
@@ -32,6 +28,7 @@ public class MainProgram : MonoBehaviour
     public TMP_Text bruteForceWarning;
     public TMP_Text timeText;
     public TMP_Text distanceText;
+    public TMP_Text iterationsText;
     
     [Header("Connected Interactable")]
     public TMP_InputField cityAmount;
@@ -53,6 +50,7 @@ public class MainProgram : MonoBehaviour
     private bool cityButtonNumbers, iterationsButtonNumbers, runningiterations = false;
     private Stopwatch sw = new Stopwatch();
     private double currentExecutionTime, currentShortestPath, avarageExecutionTime, avarageShortestPath;
+    private string fileToOutputTo;
     void Start()
     {
         cityAmount.text = "3";
@@ -145,16 +143,19 @@ public class MainProgram : MonoBehaviour
                 case 0:
                     Debug.Log("BRUTE FORCE");
                     runningiterations = true;
+                    fileToOutputTo = "TSPBruteForceData.csv";
                     StartCoroutine(CallBruteForceIterations());
                     break;
                 case 1:
                     Debug.Log("NEAREST NEIGHBOUR");
                     runningiterations = true;
+                    fileToOutputTo = "TSPNearestNeighbourData.csv";
                     StartCoroutine(CallNearestNeighbourIterations());
                     break;
                 case 2:
                     Debug.Log("ANT COLONY");
                     runningiterations = true;
+                    fileToOutputTo = "TSPAntColonyData.csv";
                     StartCoroutine(CallAntColonyIterations());
                     break;
             }
@@ -211,19 +212,24 @@ public class MainProgram : MonoBehaviour
 
     private IEnumerator CallBruteForceIterations()
     {
+        int iterations = 0;
         ResetAverage();
         for (int i = 0; i < iterationsAmountInt; i++)
         {
-            if (graphToggle.isOn)
-            {
+            if (graphToggle.isOn) {
                 GenerateGraph();
             }
             currentShortestPath = 0;
             currentExecutionTime = 0;
             yield return StartCoroutine(BruteForceIterations());
-            CalcAverage(i);
+            iterations = i + 1;
+            CalcAverage(iterations);
+            iterationsText.text = iterations.ToString();
+            if (!runningiterations) {
+                break;
+            }
         }
-        AddRecord("Brute Force", iterationsAmountInt, cityAmountInt, avarageExecutionTime, avarageShortestPath, fileToOutputTo);
+        AddRecord("Brute Force", iterations, cityAmountInt, avarageExecutionTime, avarageShortestPath, fileToOutputTo);
     }
 
     private IEnumerator BruteForceIterations()
@@ -259,19 +265,24 @@ public class MainProgram : MonoBehaviour
 
     private IEnumerator CallNearestNeighbourIterations()
     {
+        int iterations = 0;
         ResetAverage();
         for (int i = 0; i < iterationsAmountInt; i++)
         {
-            if (graphToggle.isOn)
-            {
+            if (graphToggle.isOn) {
                 GenerateGraph();
             }
             currentShortestPath = 0;
             currentExecutionTime = 0;
             yield return StartCoroutine(NearestNeighbourIterations());
-            CalcAverage(i);
+            iterations = i + 1;
+            CalcAverage(iterations);
+            iterationsText.text = iterations.ToString();
+            if (!runningiterations) {
+                break;
+            }
         }
-        AddRecord("Nearest Neighbour", iterationsAmountInt, cityAmountInt, avarageExecutionTime, avarageShortestPath, fileToOutputTo);
+        AddRecord("Nearest Neighbour", iterations, cityAmountInt, avarageExecutionTime, avarageShortestPath, fileToOutputTo);
     }
 
     private IEnumerator NearestNeighbourIterations()
@@ -304,19 +315,24 @@ public class MainProgram : MonoBehaviour
 
     private IEnumerator CallAntColonyIterations()
     {
+        int iterations = 0;
         ResetAverage();
         for (int i = 0; i < iterationsAmountInt; i++)
         {
-            if (graphToggle.isOn)
-            {
+            if (graphToggle.isOn) {
                 GenerateGraph();
             }
             currentShortestPath = 0;
             currentExecutionTime = 0;
             yield return StartCoroutine(AntColonyIterations());
-            CalcAverage(i);
+            iterations = i + 1;
+            CalcAverage(iterations);
+            iterationsText.text = iterations.ToString();
+            if (!runningiterations) {
+                break;
+            }
         }
-        AddRecord("Ant Colony", iterationsAmountInt, cityAmountInt, avarageExecutionTime, avarageShortestPath, fileToOutputTo);
+        AddRecord("Ant Colony",  iterations, cityAmountInt, avarageExecutionTime, avarageShortestPath, fileToOutputTo);
     }
     
     private IEnumerator AntColonyIterations()
@@ -352,12 +368,12 @@ public class MainProgram : MonoBehaviour
 
     private void CalcAverage(int i)
     {
-        if (i == 0) {
+        if (i == 1) {
             avarageExecutionTime = currentExecutionTime;
             avarageShortestPath = currentShortestPath;
         } else {
-            avarageExecutionTime = avarageExecutionTime + (currentExecutionTime - avarageExecutionTime) / (i + 1);
-            avarageShortestPath = avarageShortestPath + (currentShortestPath - avarageShortestPath) / (i + 1);
+            avarageExecutionTime = avarageExecutionTime + (currentExecutionTime - avarageExecutionTime) / (i);
+            avarageShortestPath = avarageShortestPath + (currentShortestPath - avarageShortestPath) / (i);
         }
         timeText.text = avarageExecutionTime.ToString("0.00000000");
         distanceText.text = avarageShortestPath.ToString("0000.00");
