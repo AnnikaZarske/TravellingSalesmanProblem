@@ -6,6 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
+using Button = UnityEngine.UIElements.Button;
 using Debug = UnityEngine.Debug;
 using Slider = UnityEngine.UI.Slider;
 using Toggle = UnityEngine.UI.Toggle;
@@ -39,7 +40,7 @@ public class MainProgram : MonoBehaviour
     public Toggle graphToggle;
     public Toggle fileOverrideToggle;
     public Toggle displayWait;
-    
+
     [Header("Connected items")]
     public GameObject cityDotpf;
     public GameObject dotSpacePanel;
@@ -138,6 +139,7 @@ public class MainProgram : MonoBehaviour
         }
         if (!error)
         {
+            GenerateGraph();
             switch (algorithmChoice.value)
             {
                 case 0:
