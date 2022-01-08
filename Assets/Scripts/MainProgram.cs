@@ -128,7 +128,7 @@ public class MainProgram : MonoBehaviour
         iterationsButtonNumbers = true;
     }
 
-    public void OnStartOnceClick()
+    public void OnStartIterationsClick()
     {
         bool error = false;
         
@@ -140,46 +140,24 @@ public class MainProgram : MonoBehaviour
         }
         if (!error)
         {
-            if (graphToggle.isOn)
-            {
-                GenerateGraph();
-            }
-        
             switch (algorithmChoice.value)
             {
                 case 0:
                     Debug.Log("BRUTE FORCE");
-                    BruteForce();
+                    runningiterations = true;
+                    StartCoroutine(CallBruteForceIterations());
                     break;
                 case 1:
                     Debug.Log("NEAREST NEIGHBOUR");
-                    NearestNeighbour();
+                    runningiterations = true;
+                    StartCoroutine(CallNearestNeighbourIterations());
                     break;
                 case 2:
                     Debug.Log("ANT COLONY");
-                    AntColony();
+                    runningiterations = true;
+                    StartCoroutine(CallAntColonyIterations());
                     break;
             }
-        }
-    }
-    
-    public void OnStartIterationsClick()
-    {
-        switch (algorithmChoice.value)
-        {
-            case 0:
-                Debug.Log("BRUTE FORCE");
-                StartCoroutine(CallBruteForceIterations());
-                break;
-            case 1:
-                Debug.Log("NEAREST NEIGHBOUR");
-                runningiterations = true;
-                StartCoroutine(CallNearestNeighbourIterations());
-                break;
-            case 2:
-                Debug.Log("ANT COLONY");
-                StartCoroutine(CallAntColonyIterations());
-                break;
         }
     }
 
@@ -189,18 +167,22 @@ public class MainProgram : MonoBehaviour
         {
             case 0:
                 Debug.Log("STOP BRUTE FORCE");
+                runningiterations = false;
+                StopCoroutine(CallBruteForceIterations());
                 break;
             case 1:
                 Debug.Log("STOP NEAREST NEIGHBOUR");
                 runningiterations = false;
-                StopCoroutine(NearestNeighbourIterations());
+                StopCoroutine(CallNearestNeighbourIterations());
                 break;
             case 2:
+                Debug.Log("STOP ANT COLONY");
+                runningiterations = false;
+                StopCoroutine(CallAntColonyIterations());
                 break;
         }
     }
-    
-    
+
     private void GenerateGraph()
     {
         ClearCities();
@@ -221,39 +203,10 @@ public class MainProgram : MonoBehaviour
 
     void DrawLines(Vector3[] vertexPositions)
     {
+        lineRenderer.startWidth = 0.05f;
+        lineRenderer.endWidth = 0.05f;
         lineRenderer.positionCount = vertexPositions.Length;
         lineRenderer.SetPositions(vertexPositions);
-    }
-    
-    private void BruteForce()
-    {
-        BruteForce bf = new BruteForce(graph);
-        
-        Debug.Log("Start Brute Force");
-        sw.Reset();
-        sw.Start();
-
-        List<Vertex> path = bf.ShortestPath();
-
-        sw.Stop();
-        Debug.Log("Stop Brute Force");
-        
-        timeText.text = sw.Elapsed.ToString();
-
-        Vector3[] positions = new Vector3[path.Count];
-        for (int i = 0; i < path.Count; i++)
-        {
-            positions[i] = new Vector3(path[i].position.x, path[i].position.y, -0.01f);
-        }
-
-        distanceText.text = bf.minDistance.ToString("0000.00");
-        DrawLines(positions);
-        
-        AddRecord("Brute Force", iterationsAmountInt, cityAmountInt, sw.Elapsed.TotalSeconds , bf.minDistance, fileToOutputTo);
-
-        //Debug.Log("[" + path[i].index.ToString("00") + "] ");
-        //Debug.Log("Distance: " + bf.minDistance.ToString("0.00"));
-        //Debug.Log("Elapsed Time: " + sw.Elapsed);
     }
 
     private IEnumerator CallBruteForceIterations()
@@ -261,7 +214,10 @@ public class MainProgram : MonoBehaviour
         ResetAverage();
         for (int i = 0; i < iterationsAmountInt; i++)
         {
-            GenerateGraph();
+            if (graphToggle.isOn)
+            {
+                GenerateGraph();
+            }
             currentShortestPath = 0;
             currentExecutionTime = 0;
             yield return StartCoroutine(BruteForceIterations());
@@ -301,37 +257,15 @@ public class MainProgram : MonoBehaviour
         }
     }
 
-    private void NearestNeighbour()
-    {
-        NearestNeighbour nn = new NearestNeighbour(graph);
-        
-        sw.Reset();
-        sw.Start();
-
-        nn.CalcShortestPath();
-        List<Vertex> path = nn.ShortestPath;
-        sw.Stop();
-            
-        timeText.text = sw.Elapsed.ToString();
-
-        Vector3[] positions = new Vector3[path.Count];
-        for (int i = 0; i < path.Count; i++)
-        {
-            positions[i] = new Vector3(path[i].position.x, path[i].position.y, -0.01f);
-        }
-
-        distanceText.text = nn.minDistance.ToString("0000.00");
-        DrawLines(positions);
-        
-        AddRecord("Nearest Neighbour", iterationsAmountInt, cityAmountInt, sw.Elapsed.TotalSeconds , nn.minDistance, fileToOutputTo);
-    }
-
     private IEnumerator CallNearestNeighbourIterations()
     {
         ResetAverage();
         for (int i = 0; i < iterationsAmountInt; i++)
         {
-            GenerateGraph();
+            if (graphToggle.isOn)
+            {
+                GenerateGraph();
+            }
             currentShortestPath = 0;
             currentExecutionTime = 0;
             yield return StartCoroutine(NearestNeighbourIterations());
@@ -367,38 +301,16 @@ public class MainProgram : MonoBehaviour
             yield return null;
         }
     }
-    
-    private void AntColony()
-    {
-        AntColony antColony = new AntColony(graph, ro, alpha, beta);
-        
-        sw.Reset();
-        sw.Start();
 
-        antColony.CalcShortestPath(antIterations, antCount);
-        List<Vertex> path = antColony.ShortestPath;
-        sw.Stop();
-        
-        timeText.text = sw.Elapsed.ToString();
-
-        Vector3[] positions = new Vector3[path.Count];
-        for (int i = 0; i < path.Count; i++)
-        {
-            positions[i] = new Vector3(path[i].position.x, path[i].position.y, -0.01f);
-        }
-
-        distanceText.text = antColony.minDistance.ToString("0000.00");
-        DrawLines(positions);
-        
-        AddRecord("Ant Colony", iterationsAmountInt, cityAmountInt, sw.Elapsed.TotalSeconds , antColony.minDistance, fileToOutputTo);
-    }
-    
     private IEnumerator CallAntColonyIterations()
     {
         ResetAverage();
         for (int i = 0; i < iterationsAmountInt; i++)
         {
-            GenerateGraph();
+            if (graphToggle.isOn)
+            {
+                GenerateGraph();
+            }
             currentShortestPath = 0;
             currentExecutionTime = 0;
             yield return StartCoroutine(AntColonyIterations());
