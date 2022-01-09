@@ -3790,7 +3790,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.2961463, g: 0.31138968, b: 0.5188679, a: 0}
+  m_BackGroundColor: {r: 0.20198469, g: 0.21693903, b: 0.4811321, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -7067,7 +7067,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -26.1, y: -100.3}
+  m_AnchoredPosition: {x: -26, y: -107}
   m_SizeDelta: {x: 158.91324, y: 150.45628}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1662870147
@@ -7100,7 +7100,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: 'WARNING:
 
-    Setting Brute Force city amount over 10 rusults in increasingly
+    Setting Brute Force city amount over 10 results in increasingly
     high wait times'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -7110,8 +7110,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+    rgba: 4278255615
+  m_fontColor: {r: 1, g: 1, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:

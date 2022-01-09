@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -24,6 +25,13 @@ public class Vertex
     public int getPosY()
     {
         return (int)position.y;
+    }
+    public double GetDistance(Vertex other)
+    {
+        float deltaX = Math.Abs(this.position.x - other.position.x);
+        float deltaY = Math.Abs(this.position.y - other.position.y);
+        double distance = Math.Sqrt( Math.Pow(deltaX, 2) + Math.Pow(deltaY, 2));
+        return distance;
     }
 
     public override string ToString() {
@@ -52,10 +60,15 @@ public class Edge
     {
         this.vertexA = vertexA;
         this.vertexB = vertexB;
-        this.pheromone = 0.001;
+        ResetPheromone();
         CalculateDistance();
     }
 
+    public void ResetPheromone()
+    {
+        this.pheromone = 0.001;
+    }
+    
     public void CalculateDistance()
     {
         int distance_x = Mathf.Abs(vertexB.getPosX() - vertexA.getPosX());
@@ -98,6 +111,13 @@ public class Graph
         this.Edges = new List<Edge>();
 
         CreateGraph();   
+    }
+    
+    public void ResetAllPheromones()
+    {
+        foreach(var edge in Edges) {
+            edge.ResetPheromone();
+        }
     }
 
     private Vector2 GetRandomPosition()

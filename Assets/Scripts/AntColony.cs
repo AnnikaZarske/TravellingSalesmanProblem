@@ -53,6 +53,7 @@ public class AntColony
             _ants = new List<SingleAnt>();
             _shortestPath = new List<Vertex>();
             _minDistance = 0;
+            graph.ResetAllPheromones();
         }
 
         private void AntGenerator(int amount)
@@ -71,6 +72,7 @@ public class AntColony
 
         public void CalcShortestPath(int iterations, int antAmount)
         {
+            graph.ResetAllPheromones();
             AntGenerator(antAmount);
             
             for (int i = 0; i < iterations; i++)
