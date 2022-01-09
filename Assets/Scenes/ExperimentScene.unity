@@ -2818,11 +2818,9 @@ MonoBehaviour:
   minPos: {x: -160, y: -160}
   maxPos: {x: 160, y: 160}
   waitTime: 0.2
-  antCount: 100
-  antIterations: 100
-  ro: 0.5
-  alpha: 1
-  beta: 2
+  startTemp: 25
+  simIterations: 1000
+  coolingRate: 0.9994999766349792
   bruteForceWarning: {fileID: 1662870148}
   timeText: {fileID: 251691172}
   distanceText: {fileID: 498627046}
@@ -3710,7 +3708,7 @@ MonoBehaviour:
       m_Image: {fileID: 0}
     - m_Text: Nearest Neighbour
       m_Image: {fileID: 0}
-    - m_Text: Ant Colony
+    - m_Text: Simulated Annealing
       m_Image: {fileID: 0}
   m_OnValueChanged:
     m_PersistentCalls:

@@ -18,12 +18,11 @@ public class MainProgram : MonoBehaviour
     public Vector2 maxPos;
     public float waitTime = 0.2f;
 
-    [Header("Ant Colony Settings")] 
-    public int antCount = 100;
-    public int antIterations = 100;
-    public double ro = 0.5f;
-    public int alpha = 1;
-    public int beta = 2;
+    [Header("Simulated Annealing Settings")] 
+    public double startTemp = 25;
+    public int simIterations = 200;
+    public double coolingRate = 0.995f;
+    
 
     [Header("Connected text fields")]
     public TMP_Text bruteForceWarning;
@@ -139,7 +138,9 @@ public class MainProgram : MonoBehaviour
         }
         if (!error)
         {
-            GenerateGraph();
+            if (graphToggle.isOn) {
+                GenerateGraph();
+            }
             switch (algorithmChoice.value)
             {
                 case 0:
@@ -155,10 +156,10 @@ public class MainProgram : MonoBehaviour
                     StartCoroutine(CallNearestNeighbourIterations());
                     break;
                 case 2:
-                    Debug.Log("ANT COLONY");
+                    Debug.Log("SIMULATED ANNEALING");
                     runningiterations = true;
-                    fileToOutputTo = "TSPAntColonyData.csv";
-                    StartCoroutine(CallAntColonyIterations());
+                    fileToOutputTo = "TSPSimulatedAnnealingData.csv";
+                    StartCoroutine(CallSimAnnealingIterations());
                     break;
             }
         }
@@ -179,9 +180,9 @@ public class MainProgram : MonoBehaviour
                 StopCoroutine(CallNearestNeighbourIterations());
                 break;
             case 2:
-                Debug.Log("STOP ANT COLONY");
+                Debug.Log("STOP SIMULATED ANNEALING");
                 runningiterations = false;
-                StopCoroutine(CallAntColonyIterations());
+                StopCoroutine(CallSimAnnealingIterations());
                 break;
         }
     }
@@ -315,7 +316,7 @@ public class MainProgram : MonoBehaviour
         }
     }
 
-    private IEnumerator CallAntColonyIterations()
+    private IEnumerator CallSimAnnealingIterations()
     {
         int iterations = 0;
         ResetAverage();
@@ -326,7 +327,7 @@ public class MainProgram : MonoBehaviour
             }
             currentShortestPath = 0;
             currentExecutionTime = 0;
-            yield return StartCoroutine(AntColonyIterations());
+            yield return StartCoroutine(SimAnnealingIterations());
             iterations = i + 1;
             CalcAverage(iterations);
             iterationsText.text = iterations.ToString();
@@ -334,22 +335,24 @@ public class MainProgram : MonoBehaviour
                 break;
             }
         }
-        AddRecord("Ant Colony",  iterations, cityAmountInt, avarageExecutionTime, avarageShortestPath, fileToOutputTo);
+        AddRecord("Simulated Annealing",  iterations, cityAmountInt, avarageExecutionTime, avarageShortestPath, fileToOutputTo);
     }
     
-    private IEnumerator AntColonyIterations()
+    private IEnumerator SimAnnealingIterations()
     {
-        AntColony antColony = new AntColony(graph, ro, alpha, beta);
+        SimulatedAnnealing sa = new SimulatedAnnealing(graph);
         
         sw.Reset();
         sw.Start();
 
-        antColony.CalcShortestPath(antIterations, antCount);
-        List<Vertex> path = antColony.ShortestPath;
+        sa.CalcShortestPath(startTemp, simIterations, coolingRate);
+        List<Vertex> path = sa.ShortestPath;
+        //Debug.Log("SA path lenght " + path.Count);
         sw.Stop();
         
         currentExecutionTime = sw.Elapsed.TotalSeconds;
-        currentShortestPath = antColony.minDistance;
+        currentShortestPath = sa.minDistance;
+        Debug.Log(currentShortestPath);
 
         Vector3[] positions = new Vector3[path.Count];
         for (int i = 0; i < path.Count; i++)
