@@ -37,6 +37,40 @@ public class Path
             _path.Add(currentCity);
         }
     }
+    
+    public void GenerateInitialPathNN(List<Vertex> verts)
+    {    
+        List<Vertex> cities = new List<Vertex>(verts);
+
+        Vertex startCity = cities[0];
+        cities.Remove(startCity);
+        Vertex currentCity = startCity;
+        _path.Add(startCity);
+
+        Vertex closestCity = cities[0]; 
+        double distance;
+
+        while (cities.Count > 0) 
+        {
+            distance = Double.MaxValue; 
+
+            for (int count = 0; count < cities.Count; count++) 
+            {
+                Vertex possibleCity = cities[count];
+                
+                double possibleDistance = currentCity.GetDistance(possibleCity);
+                if (possibleDistance < distance) 
+                {
+                    distance = possibleDistance;
+                    closestCity = possibleCity;
+                }
+            }
+
+            currentCity = closestCity;
+            cities.Remove(closestCity);
+            _path.Add(currentCity);
+        }
+    }
 
     public double GetDistance()
     {
@@ -109,7 +143,7 @@ public class SimulatedAnnealing
         double t = startingTemperature;
         Path path = new Path();
 
-        path.GenerateInitialPath(_graph.Vertices);
+        path.GenerateInitialPathNN(_graph.Vertices);
         double bestDistance = path.GetDistance();
 
         Path bestSolution = path;

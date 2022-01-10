@@ -4,11 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.UIElements;
-using Button = UnityEngine.UIElements.Button;
 using Debug = UnityEngine.Debug;
-using Slider = UnityEngine.UI.Slider;
 using Toggle = UnityEngine.UI.Toggle;
 
 public class MainProgram : MonoBehaviour
@@ -16,13 +12,11 @@ public class MainProgram : MonoBehaviour
     [Header("Display settings")]
     public Vector2 minPos;
     public Vector2 maxPos;
-    public float waitTime = 0.2f;
 
     [Header("Simulated Annealing Settings")] 
     public double startTemp = 25;
     public int simIterations = 200;
     public double coolingRate = 0.995f;
-    
 
     [Header("Connected text fields")]
     public TMP_Text bruteForceWarning;
@@ -38,7 +32,6 @@ public class MainProgram : MonoBehaviour
     public TMP_Dropdown algorithmChoice;
     public Toggle graphToggle;
     public Toggle fileOverrideToggle;
-    public Toggle displayWait;
 
     [Header("Connected items")]
     public GameObject cityDotpf;
@@ -156,6 +149,12 @@ public class MainProgram : MonoBehaviour
                     fileToOutputTo = "TSPSimulatedAnnealingData.csv";
                     StartCoroutine(CallSimAnnealingIterations());
                     break;
+                case 3:
+                    Debug.Log("2-OPT");
+                    runningiterations = true;
+                    fileToOutputTo = "TSP2-OptData.csv";
+                    StartCoroutine(CallTwoOptIterations());
+                    break;
             }
         }
     }
@@ -178,6 +177,11 @@ public class MainProgram : MonoBehaviour
                 Debug.Log("STOP SIMULATED ANNEALING");
                 runningiterations = false;
                 StopCoroutine(CallSimAnnealingIterations());
+                break;
+            case 3:
+                Debug.Log("STOP 2-OPT");
+                runningiterations = false;
+                StopCoroutine(CallTwoOptIterations());
                 break;
         }
     }
@@ -213,9 +217,15 @@ public class MainProgram : MonoBehaviour
         ResetAverage();
         for (int i = 0; i < iterationsAmountInt; i++)
         {
-            BeforeCall();
+            if (graphToggle.isOn) {
+                GenerateGraph();
+            }
+            currentShortestPath = 0;
+            currentExecutionTime = 0;
             yield return StartCoroutine(BruteForceIterations());
-            AfterCall(iterations, i);
+            iterations = i + 1;
+            CalcAverage(iterations);
+            iterationsText.text = iterations.ToString();
             if (!runningiterations) {
                 break;
             }
@@ -227,27 +237,20 @@ public class MainProgram : MonoBehaviour
     {
         BruteForce bf = new BruteForce(graph);
         
-        sw.Reset();
-        sw.Start();
-
+        sw.Restart();
         List<Vertex> path = bf.ShortestPath();
-
         sw.Stop();
         
         currentExecutionTime = sw.Elapsed.TotalSeconds;
         currentShortestPath = bf.minDistance;
-
+        
         Vector3[] positions = new Vector3[path.Count];
         for (int i = 0; i < path.Count; i++) {
             positions[i] = new Vector3(path[i].position.x, path[i].position.y, -0.01f);
         }
         DrawLines(positions);
 
-        if (displayWait.isOn) {
-            yield return new WaitForSeconds(waitTime);
-        } else {
-            yield return null;
-        }
+        yield return null;
     }
 
     private IEnumerator CallNearestNeighbourIterations()
@@ -256,9 +259,15 @@ public class MainProgram : MonoBehaviour
         ResetAverage();
         for (int i = 0; i < iterationsAmountInt; i++)
         {
-            BeforeCall();
+            if (graphToggle.isOn) {
+                GenerateGraph();
+            }
+            currentShortestPath = 0;
+            currentExecutionTime = 0;
             yield return StartCoroutine(NearestNeighbourIterations());
-            AfterCall(iterations, i);
+            iterations = i + 1;
+            CalcAverage(iterations);
+            iterationsText.text = iterations.ToString();
             if (!runningiterations) {
                 break;
             }
@@ -270,28 +279,22 @@ public class MainProgram : MonoBehaviour
     {
         NearestNeighbour nn = new NearestNeighbour(graph);
         
-        sw.Reset();
-        sw.Start();
-
+        sw.Restart();
         nn.CalcShortestPath();
-        List<Vertex> path = nn.ShortestPath;
         sw.Stop();
-
+        
         currentExecutionTime = sw.Elapsed.TotalSeconds;
         currentShortestPath = nn.minDistance;
-
+        
+        List<Vertex> path = nn.ShortestPath;
         Vector3[] positions = new Vector3[path.Count];
         for (int i = 0; i < path.Count; i++)
         {
             positions[i] = new Vector3(path[i].position.x, path[i].position.y, -0.01f);
         }
         DrawLines(positions);
-        
-        if (displayWait.isOn) {
-            yield return new WaitForSeconds(waitTime);
-        } else {
-            yield return null;
-        }
+
+        yield return null;
     }
 
     private IEnumerator CallSimAnnealingIterations()
@@ -300,9 +303,15 @@ public class MainProgram : MonoBehaviour
         ResetAverage();
         for (int i = 0; i < iterationsAmountInt; i++)
         {
-            BeforeCall();
+            if (graphToggle.isOn) {
+                GenerateGraph();
+            }
+            currentShortestPath = 0;
+            currentExecutionTime = 0;
             yield return StartCoroutine(SimAnnealingIterations());
-            AfterCall(iterations, i);
+            iterations = i + 1;
+            CalcAverage(iterations);
+            iterationsText.text = iterations.ToString();
             if (!runningiterations) {
                 break;
             }
@@ -314,18 +323,58 @@ public class MainProgram : MonoBehaviour
     {
         SimulatedAnnealing sa = new SimulatedAnnealing(graph);
         
-        sw.Reset();
-        sw.Start();
-
+        sw.Restart();
         sa.CalcShortestPath(startTemp, simIterations, coolingRate);
-        List<Vertex> path = sa.ShortestPath;
-       
         sw.Stop();
         
         currentExecutionTime = sw.Elapsed.TotalSeconds;
         currentShortestPath = sa.minDistance;
-        Debug.Log(currentShortestPath);
+        
+        List<Vertex> path = sa.ShortestPath;
+        Vector3[] positions = new Vector3[path.Count];
+        for (int i = 0; i < path.Count; i++)
+        {
+            positions[i] = new Vector3(path[i].position.x, path[i].position.y, -0.01f);
+        }
+        DrawLines(positions);
 
+        yield return null;
+    }
+
+    private IEnumerator CallTwoOptIterations()
+    {
+        int iterations = 0;
+        ResetAverage();
+        for (int i = 0; i < iterationsAmountInt; i++)
+        {
+            if (graphToggle.isOn) {
+                GenerateGraph();
+            }
+            currentShortestPath = 0;
+            currentExecutionTime = 0;
+            yield return StartCoroutine(TwoOptIterations());
+            iterations = i + 1;
+            CalcAverage(iterations);
+            iterationsText.text = iterations.ToString();
+            if (!runningiterations) {
+                break;
+            }
+        }
+        AddRecord("2-Opt",  iterations, cityAmountInt, avarageExecutionTime, avarageShortestPath, fileToOutputTo);
+    }
+    
+    private IEnumerator TwoOptIterations()
+    {
+        TwoOpt to = new TwoOpt(graph);
+        
+        sw.Restart();
+        to.CalcShortestPath();
+        sw.Stop();
+        
+        currentExecutionTime = sw.Elapsed.TotalSeconds;
+        currentShortestPath = to.minDistance;
+        
+        List<Vertex> path = to.shortestPath;
         Vector3[] positions = new Vector3[path.Count];
         for (int i = 0; i < path.Count; i++)
         {
@@ -333,29 +382,9 @@ public class MainProgram : MonoBehaviour
         }
         DrawLines(positions);
         
-        if (displayWait.isOn) {
-            yield return new WaitForSeconds(waitTime);
-        } else {
-            yield return null;
-        }
+        yield return null;
     }
-
-    private void BeforeCall()
-    {
-        if (graphToggle.isOn) {
-            GenerateGraph();
-        }
-        currentShortestPath = 0;
-        currentExecutionTime = 0;
-    }
-
-    private void AfterCall(int iterations, int i)
-    {
-        iterations = i + 1;
-        CalcAverage(iterations);
-        iterationsText.text = iterations.ToString();
-    }
-
+    
     private void CalcAverage(int i)
     {
         if (i == 1) {
