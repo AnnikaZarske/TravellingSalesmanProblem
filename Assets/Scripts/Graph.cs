@@ -52,7 +52,6 @@ public class Vertex
 public class Edge
 {
     public double distance { get; set; }
-    public double pheromone { get; set; }
     public Vertex vertexA { get; set; }
     public Vertex vertexB { get; set; }
 
@@ -60,15 +59,9 @@ public class Edge
     {
         this.vertexA = vertexA;
         this.vertexB = vertexB;
-        ResetPheromone();
         CalculateDistance();
     }
 
-    public void ResetPheromone()
-    {
-        this.pheromone = 0.001;
-    }
-    
     public void CalculateDistance()
     {
         int distance_x = Mathf.Abs(vertexB.getPosX() - vertexA.getPosX());
@@ -112,18 +105,9 @@ public class Graph
 
         CreateGraph();   
     }
-    
-    public void ResetAllPheromones()
-    {
-        foreach(var edge in Edges) {
-            edge.ResetPheromone();
-        }
-    }
 
     private Vector2 GetRandomPosition()
     {
-        //System.Random rand = new System.Random();
-
         // ramdomized position of the vertex
         int x = rand.Next((int)_minPos.x, (int)_maxPos.x);
         int y = rand.Next((int)_minPos.y, (int)_maxPos.y);
@@ -144,18 +128,15 @@ public class Graph
     private void CreateGraph()
     {
         // Generate _vertexCount vertices
-        for (int i = 0; i < _vertexCount; i++)
-        {
+        for (int i = 0; i < _vertexCount; i++) {
             Vertex vertex = new Vertex(i);
             vertex.position = GetRandomPosition();
             this.Vertices.Add(vertex);
         }
         
         // Connect all vertices and calculate distance
-        for (int i = 0; i < _vertexCount; i++)
-        {
-            for (int j = i + 1; j < _vertexCount; j++)
-            {
+        for (int i = 0; i < _vertexCount; i++) {
+            for (int j = i + 1; j < _vertexCount; j++) {
                 Edge edgeTo = new Edge(Vertices[i], Vertices[j]);
                 Vertices[i].Edges.Add(edgeTo);
                 

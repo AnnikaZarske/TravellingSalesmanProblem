@@ -43,17 +43,13 @@ public class BruteForce
             _visitedPoints.Push(vertex);            
             _pointStack.Push(vertex);
 
-            foreach (Edge edge in vertex.Edges)
-            {
-                if (edge.vertexB == _startPoint)
-                {
-                    if (counter == graph.Vertices.Count)
-                    {
+            foreach (Edge edge in vertex.Edges) {
+                if (edge.vertexB == _startPoint) {
+                    if (counter == graph.Vertices.Count) {
                         _pointStack.Push(edge.vertexB);
                         distance += edge.distance;
 
-                        if (distance < minDistance)
-                        {
+                        if (distance < minDistance) {
                             _shortestPath.Clear();
                             _shortestPath.AddRange(_pointStack);
                             _minDistance = distance;
@@ -64,8 +60,7 @@ public class BruteForce
                     }
                 }
 
-                if (!_visitedPoints.Contains(edge.vertexB))
-                {
+                if (!_visitedPoints.Contains(edge.vertexB)) {
                     distance += edge.distance;
                     SearchShortestPath(edge.vertexB);
                     distance -= edge.distance;

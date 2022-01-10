@@ -95,7 +95,6 @@ public class MainProgram : MonoBehaviour
     {
         cityAmountInt = int.Parse(cityAmount.text); 
     }
-
     public void onIterationsEdit()
     {
         iterationsAmountInt = int.Parse(iterationsAmount.text);
@@ -103,25 +102,21 @@ public class MainProgram : MonoBehaviour
     
     public void onCityPlusButton()
     {
-        //cityAmountInt = int.Parse(cityAmount.text);
         cityAmountInt++;
         cityButtonNumbers = true;
     }
     public void onCityMinusButton()
     {
-        //cityAmountInt = int.Parse(cityAmount.text);
         cityAmountInt--;
         cityButtonNumbers = true;
     }
     public void onIterationsPlusButton()
     {
-        //cityAmountInt = int.Parse(cityAmount.text);
         iterationsAmountInt++;
         iterationsButtonNumbers = true;
     }
     public void oniterationsMinusButton()
     {
-        //cityAmountInt = int.Parse(cityAmount.text);
         iterationsAmountInt--;
         iterationsButtonNumbers = true;
     }
@@ -190,7 +185,6 @@ public class MainProgram : MonoBehaviour
     private void GenerateGraph()
     {
         ClearCities();
-
         graph = new Graph(cityAmountInt, minPos, maxPos);
         //Debug.Log("City Amount: " + cityAmountInt);
         //GraphInDebug();
@@ -219,15 +213,9 @@ public class MainProgram : MonoBehaviour
         ResetAverage();
         for (int i = 0; i < iterationsAmountInt; i++)
         {
-            if (graphToggle.isOn) {
-                GenerateGraph();
-            }
-            currentShortestPath = 0;
-            currentExecutionTime = 0;
+            BeforeCall();
             yield return StartCoroutine(BruteForceIterations());
-            iterations = i + 1;
-            CalcAverage(iterations);
-            iterationsText.text = iterations.ToString();
+            AfterCall(iterations, i);
             if (!runningiterations) {
                 break;
             }
@@ -250,18 +238,14 @@ public class MainProgram : MonoBehaviour
         currentShortestPath = bf.minDistance;
 
         Vector3[] positions = new Vector3[path.Count];
-        for (int i = 0; i < path.Count; i++)
-        {
+        for (int i = 0; i < path.Count; i++) {
             positions[i] = new Vector3(path[i].position.x, path[i].position.y, -0.01f);
         }
         DrawLines(positions);
 
-        if (displayWait.isOn)
-        {
+        if (displayWait.isOn) {
             yield return new WaitForSeconds(waitTime);
-        }
-        else
-        {
+        } else {
             yield return null;
         }
     }
@@ -272,15 +256,9 @@ public class MainProgram : MonoBehaviour
         ResetAverage();
         for (int i = 0; i < iterationsAmountInt; i++)
         {
-            if (graphToggle.isOn) {
-                GenerateGraph();
-            }
-            currentShortestPath = 0;
-            currentExecutionTime = 0;
+            BeforeCall();
             yield return StartCoroutine(NearestNeighbourIterations());
-            iterations = i + 1;
-            CalcAverage(iterations);
-            iterationsText.text = iterations.ToString();
+            AfterCall(iterations, i);
             if (!runningiterations) {
                 break;
             }
@@ -322,15 +300,9 @@ public class MainProgram : MonoBehaviour
         ResetAverage();
         for (int i = 0; i < iterationsAmountInt; i++)
         {
-            if (graphToggle.isOn) {
-                GenerateGraph();
-            }
-            currentShortestPath = 0;
-            currentExecutionTime = 0;
+            BeforeCall();
             yield return StartCoroutine(SimAnnealingIterations());
-            iterations = i + 1;
-            CalcAverage(iterations);
-            iterationsText.text = iterations.ToString();
+            AfterCall(iterations, i);
             if (!runningiterations) {
                 break;
             }
@@ -347,7 +319,7 @@ public class MainProgram : MonoBehaviour
 
         sa.CalcShortestPath(startTemp, simIterations, coolingRate);
         List<Vertex> path = sa.ShortestPath;
-        //Debug.Log("SA path lenght " + path.Count);
+       
         sw.Stop();
         
         currentExecutionTime = sw.Elapsed.TotalSeconds;
@@ -361,14 +333,27 @@ public class MainProgram : MonoBehaviour
         }
         DrawLines(positions);
         
-        if (displayWait.isOn)
-        {
+        if (displayWait.isOn) {
             yield return new WaitForSeconds(waitTime);
-        }
-        else
-        {
+        } else {
             yield return null;
         }
+    }
+
+    private void BeforeCall()
+    {
+        if (graphToggle.isOn) {
+            GenerateGraph();
+        }
+        currentShortestPath = 0;
+        currentExecutionTime = 0;
+    }
+
+    private void AfterCall(int iterations, int i)
+    {
+        iterations = i + 1;
+        CalcAverage(iterations);
+        iterationsText.text = iterations.ToString();
     }
 
     private void CalcAverage(int i)
@@ -412,32 +397,24 @@ public class MainProgram : MonoBehaviour
     
     private void AddRecord(string algoType, int iterations, int cityAmount, double time, double distance, string filepath)
     {
-        if (fileOverrideToggle.isOn)
-        {
+        if (fileOverrideToggle.isOn) {
             fileOverrideToggle.isOn = false;
-            try
-            {
-                using (System.IO.StreamWriter file = new System.IO.StreamWriter(@filepath, false))
-                {
+            try {
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(@filepath, false)) {
                     file.WriteLine(algoType + "," + iterations + "," + cityAmount + "," + time + "," + distance);
                 }
             }
-            catch(Exception ex)
-            {
+            catch(Exception ex) {
                 throw new AggregateException("This program messed up: ", ex);
             }
         }
-        else
-        {
-            try
-            {
-                using (System.IO.StreamWriter file = new System.IO.StreamWriter(@filepath, true))
-                {
+        else {
+            try {
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(@filepath, true)) {
                     file.WriteLine(algoType + "," + iterations + "," + cityAmount + "," + time + "," + distance);
                 }
             }
-            catch(Exception ex)
-            {
+            catch(Exception ex) {
                 throw new AggregateException("This program messed up: ", ex);
             }
         }

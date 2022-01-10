@@ -127,6 +127,8 @@ public class SimulatedAnnealing
                 } 
                 else if (Math.Exp((bestDistance - currentDistance) / t) < random.NextDouble()) {
                     currentSolution.revertSwap();
+                    bestDistance = currentSolution.GetDistance(); 
+                    bestSolution = currentSolution;
                 }
                 
                 t *= coolingRate;

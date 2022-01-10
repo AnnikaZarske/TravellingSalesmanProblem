@@ -39,7 +39,7 @@ public class NearestNeighbour
 
         public void CalcShortestPath()
         {    
-            // set currentCity to first city adn removes it from cities list
+            // set currentCity to first city and remove it from cities list
             _startCity = _cities[0];
             _currentCity = _cities[0];
             _cities.Remove(_currentCity);
@@ -53,18 +53,15 @@ public class NearestNeighbour
             double distance;
 
             // outer loop for all cities
-            while (_cities.Count > 0) 
-            {
+            while (_cities.Count > 0) {
                 distance = Double.MaxValue; // reset distance to max value
 
                 // inner loop checks distance between currentCity and possibleCity
-                for (int count = 0; count < _cities.Count; count++) 
-                {
+                for (int count = 0; count < _cities.Count; count++) {
                     _possibleCity = _cities[count];
                 
                     double possibleDistance = _currentCity.GetDistance(_possibleCity);
-                    if (possibleDistance < distance) 
-                    {
+                    if (possibleDistance < distance) {
                         distance = possibleDistance;
                         _closestCity = _possibleCity;
                     }
